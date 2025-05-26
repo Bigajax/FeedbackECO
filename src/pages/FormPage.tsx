@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import QuestionCard from '../components/QuestionCard';
 import RadioGroup from '../components/RadioGroup';
-import Slider from '../components/Slider'; // Note: Slider is not directly used for value 1-5 currently, but if you change RadioGroup to Slider, this is relevant.
+import Slider from '../components/Slider';
 import CheckboxGroup from '../components/CheckboxGroup';
 import TextInput from '../components/TextInput';
 import Button from '../components/Button';
@@ -105,7 +105,8 @@ const FormPage: React.FC = () => {
         q10_overall_experience_short: formData.experience,
       };
 
-      const response = await fetch('/api/submit-feedback', {
+      // Alteração na URL: use a URL do emulador do Firebase Functions
+      const response = await fetch('http://127.0.0.1:5001/eco6-11d1c/us-central1/submitFeedback', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -185,7 +186,7 @@ const FormPage: React.FC = () => {
           <button
             onClick={handleNext}
             className="px-8 py-4 rounded-xl bg-white text-gray-800 font-medium text-lg transition-all hover:scale-105 duration-300
-                       shadow-sm hover:shadow-md shadow-gray-300/50 hover:shadow-gray-400/50 w-full"
+                        shadow-sm hover:shadow-md shadow-gray-300/50 hover:shadow-gray-400/50 w-full"
           >
             Iniciar Feedback
           </button>
@@ -398,7 +399,7 @@ const FormPage: React.FC = () => {
           <button
             onClick={handleNext} // Use handleNext aqui para consistência
             className="px-8 py-4 rounded-xl bg-white text-gray-800 font-medium text-lg transition-all hover:scale-105 duration-300
-                       shadow-sm hover:shadow-md shadow-gray-300/50 hover:shadow-gray-400/50"
+                        shadow-sm hover:shadow-md shadow-gray-300/50 hover:shadow-gray-400/50"
           >
             Voltar ao início
           </button>
@@ -429,8 +430,8 @@ const FormPage: React.FC = () => {
                       style={{
                           background: `radial-gradient(circle at 30% 30%, white 0%, ${orbBaseColor}10 30%, ${orbBaseColor}20 60%, ${orbBaseColor}30 100%)`,
                           boxShadow: `0 8px 32px 0 rgba(31, 38, 135, 0.2),
-                                       inset 0 -10px 20px 0 ${orbBaseColor}30,
-                                       inset 0 10px 20px 0 rgba(255, 255, 255, 0.7)`,
+                                        inset 0 -10px 20px 0 ${orbBaseColor}30,
+                                        inset 0 10px 20px 0 rgba(255, 255, 255, 0.7)`,
                           backdropFilter: 'blur(4px)',
                           border: '1px solid rgba(255, 255, 255, 0.18)',
                           transform: 'scale(1)',

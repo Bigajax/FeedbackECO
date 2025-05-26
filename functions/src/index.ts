@@ -1,6 +1,6 @@
-// functions/src/index.ts
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
+import { FieldValue } from 'firebase-admin/firestore'; // Importação adicionada
 
 // Inicializa o app Firebase Admin se ainda não foi inicializado.
 // Em um ambiente de Cloud Functions, as credenciais são carregadas automaticamente.
@@ -25,10 +25,9 @@ export const submitFeedback = functions.https.onRequest(async (req, res) => {
   if (origin && allowedOrigins.includes(origin)) {
     res.set('Access-Control-Allow-Origin', origin);
   } else {
-    // Para origens não permitidas ou quando a origem não está presente (ex: Postman)
-    // Você pode definir uma origem padrão ou simplesmente não definir o cabeçalho.
-    // Para mais segurança, é melhor não definir o cabeçalho se a origem não for permitida.
-    // res.set('Access-Control-Allow-Origin', 'null'); // Ou similar, dependendo da sua política.
+    // Para mais segurança, não defina o cabeçalho se a origem não for permitida.
+    // Ou defina uma origem padrão como 'null' se você souber o que está fazendo.
+    // res.set('Access-Control-Allow-Origin', 'null');
   }
 
   // Configurar métodos e cabeçalhos permitidos para CORS (essencial para requisições POST)
@@ -38,12 +37,13 @@ export const submitFeedback = functions.https.onRequest(async (req, res) => {
   // Lidar com requisições OPTIONS (preflight requests)
   if (req.method === 'OPTIONS') {
     res.status(204).send('');
-    return;
+    return; // Garante que a função retorne void
   }
 
   // 1. Garante que a requisição é um POST
   if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Method Not Allowed', error: 'Only POST requests are allowed.' });
+    res.status(405).json({ message: 'Method Not Allowed', error: 'Only POST requests are allowed.' });
+    return; // Garante que a função retorne void
   }
 
   // 2. Desestrutura os dados do corpo da requisição (req.body)
@@ -62,15 +62,13 @@ export const submitFeedback = functions.https.onRequest(async (req, res) => {
   } = req.body;
 
   // 3. Validação básica dos dados recebidos
-  // Ajustado para aceitar q9_recommendation_nps como número (pode ser 0)
-  // e verificar se os campos são fornecidos, independentemente do seu valor padrão ou vazio para strings.
   if (!q1_purpose_understanding || !q10_overall_experience_short || typeof q9_recommendation_nps === 'undefined') {
-    return res.status(400).json({ message: 'Missing required feedback fields. Please ensure all required fields are filled.' });
+    res.status(400).json({ message: 'Missing required feedback fields. Please ensure all required fields are filled.' });
+    return; // Garante que a função retorne void
   }
 
   try {
     // 4. Captura o IP do usuário (se disponível via cabeçalhos)
-    // O Firebase Functions pode fornecer 'x-forwarded-for' para o IP original do cliente.
     const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
 
     // 5. Cria o objeto do documento para ser salvo no Firestore
@@ -84,9 +82,9 @@ export const submitFeedback = functions.https.onRequest(async (req, res) => {
       q7_ease_of_use: q7_ease_of_use,
       q8_emotional_change: q8_emotional_change || [],
       q8_emotional_change_other: q8_emotional_change_other || null,
-      q9_recommendation_nps: q9_recommendation_nps !== undefined && q9_recommendation_nps !== null ? parseInt(q9_recommendation_nps) : null, // Garante que seja number
+      q9_recommendation_nps: q9_recommendation_nps !== undefined && q9_recommendation_nps !== null ? parseInt(q9_recommendation_nps) : null,
       q10_overall_experience_short: q10_overall_experience_short,
-      timestamp: admin.firestore.FieldValue.serverTimestamp(),
+      timestamp: FieldValue.serverTimestamp(),
       ip_address: ipAddress
     };
 
@@ -94,15 +92,22 @@ export const submitFeedback = functions.https.onRequest(async (req, res) => {
     const docRef = await db.collection('feedbacks').add(feedbackData);
 
     // 7. Retorna uma resposta de sucesso
-    return res.status(200).json({
+    res.status(200).json({
       message: 'Feedback submitted successfully!',
       id: docRef.id,
       data: feedbackData
     });
+    return; // Garante que a função retorne void
 
-  } catch (error: any) { // Adicione ': any' para tipagem do erro, ou um tipo mais específico se souber
-    // 8. Trata erros
-    console.error('Error submitting feedback to Firebase:', error);
-    return res.status(500).json({ message: 'Internal server error', error: error.message });
+  } catch (error: unknown) { // Alterado aqui: de 'Error' para 'unknown'
+    // 8. Trata erros - Agora com verificação de tipo para 'error'
+    if (error instanceof Error) {
+        console.error('Error submitting feedback to Firebase:', error);
+        res.status(500).json({ message: 'Internal server error', error: error.message });
+    } else {
+        console.error('An unexpected error occurred:', error);
+        res.status(500).json({ message: 'Internal server error', error: 'An unexpected error occurred.' });
+    }
+    return; // Garante que a função retorne void
   }
 });
