@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import Bubble from '../components/Bubble';
+import React, { useState, useEffect } from 'react';
 import QuestionCard from '../components/QuestionCard';
 import RadioGroup from '../components/RadioGroup';
 import Slider from '../components/Slider';
@@ -24,6 +23,20 @@ const FormPage: React.FC = () => {
     otherEmotion: ''
   });
 
+  const [animateOrb, setAnimateOrb] = useState(false);
+  useEffect(() => {
+    if (currentStep === 0) {
+      const timer = setTimeout(() => {
+        setAnimateOrb(true);
+      }, 300);
+      return () => clearTimeout(timer);
+    } else {
+      setAnimateOrb(false);
+    }
+  }, [currentStep]);
+
+  const orbBaseColor = '#7A9EBF';
+
   const updateFormData = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
@@ -34,13 +47,22 @@ const FormPage: React.FC = () => {
       title: '',
       component: (
         <div className="text-center">
-          <h1 className="text-3xl font-bold mb-8">Eco</h1>
-          <p className="mb-8 text-gray-700">
-            Obrigado por usar a Eco. Sua opinião nos ajuda a melhorar a experiência.
+          <h1 className="text-3xl font-bold mb-8">ECO</h1>
+          {/* Alterado o texto para duas linhas com dois <p> */}
+          <p className="mb-2 text-gray-700">
+            Obrigado por usar a Eco.
           </p>
-          <Button onClick={() => setCurrentStep(prev => prev + 1)} fullWidth>
+          <p className="mb-8 text-gray-700">
+            Sua opinião nos ajuda a melhorar a experiência.
+          </p>
+          {/* Botão "Iniciar Feedback" com o estilo Apple-like */}
+          <button
+            onClick={() => setCurrentStep(prev => prev + 1)}
+            className="px-8 py-4 rounded-xl bg-white text-gray-800 font-medium text-lg transition-all hover:scale-105 duration-300
+                       shadow-sm hover:shadow-md shadow-gray-300/50 hover:shadow-gray-400/50 w-full"
+          >
             Iniciar Feedback
-          </Button>
+          </button>
         </div>
       )
     },
@@ -237,9 +259,14 @@ const FormPage: React.FC = () => {
           <p className="mb-8 text-gray-700">
             Suas respostas nos ajudarão a melhorar a experiência da Eco.
           </p>
-          <Button onClick={() => setCurrentStep(0)} variant="secondary">
+          {/* Botão "Voltar ao início" com o estilo Apple-like */}
+          <button
+            onClick={() => setCurrentStep(0)}
+            className="px-8 py-4 rounded-xl bg-white text-gray-800 font-medium text-lg transition-all hover:scale-105 duration-300
+                       shadow-sm hover:shadow-md shadow-gray-300/50 hover:shadow-gray-400/50"
+          >
             Voltar ao início
-          </Button>
+          </button>
         </div>
       )
     }
@@ -260,32 +287,75 @@ const FormPage: React.FC = () => {
   const currentQuestion = questions[currentStep];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-50 to-blue-100 flex flex-col p-4">
-      {currentStep === 0 ? <Bubble /> : null}
-      
-      {currentStep > 0 && currentStep < questions.length - 1 && (
-        <div className="mb-4 max-w-md mx-auto w-full">
-          <ProgressBar currentStep={currentStep} totalSteps={questions.length - 2} />
-        </div>
-      )}
-      
-      <QuestionCard 
-        title={currentQuestion.title} 
-        className={`${currentStep === 0 || currentStep === questions.length - 1 ? 'mt-4' : 'mt-8'}`}
-      >
-        {currentQuestion.component}
-        
-        {currentStep > 0 && currentStep < questions.length - 1 && (
-          <div className="flex justify-between mt-8">
-            <Button onClick={handlePrevious} variant="secondary">
-              Voltar
-            </Button>
-            <Button onClick={handleNext}>
-              Próxima
-            </Button>
+    <div className="min-h-screen bg-[#F8F6FA] flex flex-col p-4 relative">
+      {/* Background effects */}
+      <div className="absolute inset-0">
+        <div className="absolute top-1/4 left-1/4 w-[40vw] h-[40vw] md:w-[20vw] md:h-[20vw] rounded-full bg-[#E0BBE4] opacity-20 blur-[100px] animate-pulse"></div>
+        <div className="absolute bottom-1/3 right-1/3 w-[45vw] h-[45vw] md:w-[25vw] md:h-[25vw] rounded-full bg-[#957DAD] opacity-20 blur-[120px] animate-pulse delay-1000"></div>
+      </div>
+
+      <div className="z-10 flex flex-col flex-grow items-center justify-center pt-8 pb-4">
+        {/* A bolha da Landing Page renderizada FORA do QuestionCard, apenas na primeira etapa */}
+        {currentStep === 0 && (
+          <div className={`relative mb-8 transition-all duration-1000 ${
+            animateOrb ? 'scale-100 opacity-100' : 'scale-90 opacity-0'
+          }`} style={{ width: '192px', height: '192px' }}>
+              <div className="glass-bubble-container relative w-full h-full floating">
+                  <div
+                      className="absolute inset-0 rounded-full"
+                      style={{
+                          background: `radial-gradient(circle at 30% 30%, white 0%, ${orbBaseColor}10 30%, ${orbBaseColor}20 60%, ${orbBaseColor}30 100%)`,
+                          boxShadow: `0 8px 32px 0 rgba(31, 38, 135, 0.2),
+                                       inset 0 -10px 20px 0 ${orbBaseColor}30,
+                                       inset 0 10px 20px 0 rgba(255, 255, 255, 0.7)`,
+                          backdropFilter: 'blur(4px)',
+                          border: '1px solid rgba(255, 255, 255, 0.18)',
+                          transform: 'scale(1)',
+                          transition: 'transform 0.3s ease-out',
+                      }}
+                  />
+                  <div
+                      className="absolute bottom-0 left-1/2 w-3/4 h-4 rounded-full transform -translate-x-1/2 translate-y-10 opacity-40"
+                      style={{
+                          background: `radial-gradient(ellipse at center, ${orbBaseColor}80 0%, transparent 70%)`,
+                          filter: 'blur(4px)',
+                      }}
+                  />
+                  <div
+                      className="absolute inset-0 rounded-full"
+                      style={{
+                          border: `1px solid ${orbBaseColor}30`,
+                          animation: 'pulse 2s infinite',
+                      }}
+                  />
+              </div>
           </div>
         )}
-      </QuestionCard>
+        
+        {currentStep > 0 && currentStep < questions.length - 1 && (
+          <div className="mb-4 max-w-md mx-auto w-full">
+            <ProgressBar currentStep={currentStep} totalSteps={questions.length - 2} />
+          </div>
+        )}
+        
+        <QuestionCard
+          title={currentQuestion.title}
+          className={`${currentStep === 0 || currentStep === questions.length - 1 ? '' : 'mt-8'}`}
+        >
+          {currentQuestion.component}
+          
+          {currentStep > 0 && currentStep < questions.length - 1 && (
+            <div className="flex justify-between mt-8">
+              <Button onClick={handlePrevious} variant="secondary">
+                Voltar
+              </Button>
+              <Button onClick={handleNext}>
+                Próxima
+              </Button>
+            </div>
+          )}
+        </QuestionCard>
+      </div>
     </div>
   );
 };
