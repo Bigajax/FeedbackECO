@@ -1,4 +1,4 @@
-import React from 'react';
+
 import FormPage from './pages/FormPage';
 import './styles/animations.css';
 
